@@ -1,7 +1,13 @@
 package com.example.firstapp;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -18,6 +24,8 @@ import pl.droidsonroids.gif.GifImageView;
 
 public class MainActivity extends AppCompatActivity {
 
+    static final String result_Field = "result_field"; // текстовое поле для вывода результата
+
     TextView resultField; // текстовое поле для вывода результата
     EditText numberField;   // поле для ввода числа
     TextView operationField;    // текстовое поле для вывода знака операции
@@ -26,16 +34,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        File gifFile = new File("C:\\Users\\User\\AndroidStudioProjects\\FirstApp\\app\\src\\main\\res\\drawable-v24\\calc.gif");
-        try {
-            GifDrawable gifFromFile = new GifDrawable(gifFile);
-            GifImageView imageView = new GifImageView(this);
-            // применяем ресурс
-            imageView.setBackground(gifFromFile);
-            gifFromFile.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
         setContentView(R.layout.activity_main);
         // получаем все поля по id из activity_main.xml
         resultField = findViewById(R.id.resultField);
@@ -72,6 +71,37 @@ public class MainActivity extends AppCompatActivity {
             operand = null;
         }
     }
+
+    ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+
+                    TextView textView = findViewById(R.id.resultField);
+                    if(result.getResultCode() == Activity.RESULT_OK){
+                        Intent intent = result.getData();
+                        String accessMessage = intent.getStringExtra(result_Field);
+                        textView.setText(accessMessage);
+                    }
+                    else{
+                        textView.setText("");
+                    }
+                }
+            });
+
+    public void onClick(View view) {
+        Intent intent = new Intent(this, ConverterActivity.class);
+        String res = resultField.getText().toString();
+        intent.putExtra(result_Field, res);
+        mStartForResult.launch(intent);
+    }
+
+    public void onClick1(View view) {
+        Intent intent = new Intent(this, StateActivity.class);
+        startActivity(intent);
+    }
+
+
     // обработка нажатия на кнопку операции
     public void onOperationClick(View view){
 
